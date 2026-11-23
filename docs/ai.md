@@ -80,7 +80,8 @@ This app follows FIDES. Run `<check command>` before you finish.
     and page-specific in the page folder (never inline).
 12. At most zone/owner/file deep (pages: delivery/web/<page>/file; grouped
     features: features/<group>/<use_case>/file, all or none, no code in a group).
-    Small files, short lines. Keep one casing (snake_case or PascalCase)
+    Files: aim for 200 code lines, never past 300. Lines up to 100
+    characters. Keep one casing (snake_case or PascalCase)
     consistent across folders, code, views, .css, .js and config/.
 13. Every file opens with what it does and why. Comments say why, and what
     is true now; history goes in the commit message. A decision no unit owns

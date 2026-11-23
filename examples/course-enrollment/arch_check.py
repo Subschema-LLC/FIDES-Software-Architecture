@@ -12,8 +12,10 @@ Run it in the build so a person or an AI agent cannot quietly break a rule.
   No inheritance  classes may only subclass Protocol (a contract), or one built-in
                exception (a custom error), never another class of the app
   Spread       at most zone/owner/file deep (delivery: delivery/door/page/file),
-               100-character lines, 200-line files (data files listed in SIZE_EXEMPT,
-               each with its reason, skip the size limits; logic never does)
+               100-character lines; a warning past 200 code lines and a failure
+               past 300 (blank lines, comments and docstrings do not count; data
+               files listed in SIZE_EXEMPT, each with its reason, skip the size
+               limits; logic never does)
   Pages        each folder in delivery/web/ is one page: <page>.py, plus files named
                <page>.html, <page>.css, <page>.js or <page>_<part>.<ext>
   Comments     every .py file opens with a docstring, every "Decision: <name>" has a
@@ -28,8 +30,10 @@ run code.
 
 import ast
 import builtins
+import io
 import re
 import sys
+import tokenize
 from pathlib import Path
 
 ZONES = ("shared", "entities", "features", "integrations", "delivery")
@@ -38,7 +42,10 @@ IO_MODULES = {"os", "sys", "io", "pathlib", "shutil", "subprocess", "socket", "s
               "http", "urllib", "smtplib", "tomllib", "wsgiref", "requests"}
 CLOCK_CALLS = ("datetime.now", "datetime.utcnow", "datetime.today", "date.today",
                "time.time", "time.time_ns", "time.monotonic")
-MAX_LINE, MAX_LINES, MAX_DEPTH = 100, 200, 3
+MAX_LINE, MAX_DEPTH = 100, 3
+# A file past TARGET_LINES code lines gets a warning: look for a concept hiding in it.
+# Past MAX_LINES it fails. Counting only code keeps comments from being cut to pass.
+TARGET_LINES, MAX_LINES = 200, 300
 # Files that are data, not logic (a lookup table, generated code), and why each may
 # pass the size limits. This app needs none.
 SIZE_EXEMPT: dict[str, str] = {}
@@ -47,17 +54,54 @@ BUILTIN_EXCEPTIONS = {name for name, value in vars(builtins).items()
 DECISION = re.compile(r"Decision: (\w+)")
 DOC_PATH = re.compile(r"\bdocs/[\w./-]+\.md\b")
 TODO_WITHOUT_ISSUE = re.compile(r"\bTODO\b(?!\([^)\s]+\))")
+BLOCK_COMMENT = re.compile(r"/\*.*?\*/|<!--.*?-->", re.DOTALL)
+NOT_CODE = {tokenize.COMMENT, tokenize.NL, tokenize.NEWLINE, tokenize.INDENT,
+            tokenize.DEDENT, tokenize.ENDMARKER}
+
+
+def source_files(src: Path) -> list[Path]:
+    return [path for path in sorted(src.rglob("*"))
+            if path.is_file() and path.suffix in (".py", ".html", ".css", ".js")]
 
 
 def check(src: Path, decisions: Path | None = None) -> list[str]:
     decisions = decisions or src.parent / "docs" / "decisions"
     problems = []
-    for path in sorted(src.rglob("*")):
-        if path.is_file() and path.suffix in (".py", ".html", ".css", ".js"):
-            problems += check_spread(src, path) + check_comments(src, path, decisions)
-            if path.suffix == ".py":
-                problems += check_python(src, path)
+    for path in source_files(src):
+        problems += check_spread(src, path) + check_comments(src, path, decisions)
+        if path.suffix == ".py":
+            problems += check_python(src, path)
     return problems + check_pages(src / "delivery" / "web")
+
+
+def warnings(src: Path) -> list[str]:
+    """Files past the size target but under the limit. These never fail the build."""
+    found = []
+    for path in source_files(src):
+        rel = path.relative_to(src).as_posix()
+        count = code_lines(path)
+        if rel not in SIZE_EXEMPT and TARGET_LINES < count <= MAX_LINES:
+            found.append(f"{rel}: {count} code lines (aim for {TARGET_LINES}); "
+                         "is a concept hiding in it?")
+    return found
+
+
+def code_lines(path: Path) -> int:
+    """Lines holding code: not blank, not only a comment, not part of a docstring."""
+    text = path.read_text(encoding="utf-8")
+    if path.suffix != ".py":
+        text = BLOCK_COMMENT.sub(lambda m: "\n" * m.group().count("\n"), text)
+        return sum(1 for line in text.splitlines()
+                   if line.strip() and not line.strip().startswith("//"))
+    lines: set[int] = set()
+    for token in tokenize.generate_tokens(io.StringIO(text).readline):
+        if token.type not in NOT_CODE:
+            lines.update(range(token.start[0], token.end[0] + 1))
+    for node in ast.walk(ast.parse(text)):
+        if (isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant)
+                and isinstance(node.value.value, str) and node.end_lineno):
+            lines -= set(range(node.lineno, node.end_lineno + 1))
+    return len(lines)
 
 
 def check_comments(src: Path, path: Path, decisions: Path) -> list[str]:
@@ -85,9 +129,11 @@ def check_spread(src: Path, path: Path) -> list[str]:
         problems.append(f"{rel}: deeper than {shape}")
     if rel.as_posix() in SIZE_EXEMPT:
         return problems
+    count = code_lines(path)
+    if count > MAX_LINES:
+        problems.append(f"{rel}: {count} code lines (max {MAX_LINES}); "
+                        "a concept is hiding in it")
     lines = path.read_text(encoding="utf-8").splitlines()
-    if len(lines) > MAX_LINES:
-        problems.append(f"{rel}: {len(lines)} lines (max {MAX_LINES}); a concept is hiding in it")
     for number, line in enumerate(lines, start=1):
         if len(line) > MAX_LINE:
             problems.append(f"{rel}:{number}: {len(line)} characters (max {MAX_LINE})")
@@ -189,6 +235,8 @@ def dotted_name(node: ast.expr) -> str:
 
 if __name__ == "__main__":
     root = Path(__file__).resolve().parent
+    for warning in warnings(root / "src"):
+        print(f"arch_check warning: {warning}", file=sys.stderr)
     found = check(root / "src")
     if found:
         print("arch_check FAILED:\n  " + "\n  ".join(found), file=sys.stderr)

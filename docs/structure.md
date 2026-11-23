@@ -310,8 +310,10 @@ Spread has a vertical side too:
 - **Shallow.** Never deeper than `zone/owner/file`. The two exceptions are a
   page in delivery (`delivery/web/<page>/file`) and a feature in a group
   (`features/<group>/<use_case>/file`, see [feature groups](#feature-groups)).
-- **Small files.** A file past about 200 lines is hiding another concept.
-  Give that concept its own unit, named for it. A data file (a lookup table,
+- **Small files.** Aim for under 200 code lines (blank lines and comments do
+  not count). Past 200 the check warns: look for another concept hiding in the
+  file and give it its own unit, named for it. Past 300 the check fails. A file
+  between the two that is still one concept may stay. A data file (a lookup table,
   generated code) may be listed in the checker as an exemption, with its
   reason, never logic and never with a comment in the file itself.
 - **Short lines.** About 100 characters, one statement per line, so code

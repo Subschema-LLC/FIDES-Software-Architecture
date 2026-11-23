@@ -1,7 +1,8 @@
 <?php
 /** Runs arch-check.php on a throwaway tree: a custom exception may extend
  *  one built-in exception; any other `extends` and any trait fail the check;
- *  a closure's `use` is not a trait.
+ *  a closure's `use` is not a trait; past 200 code lines warns, past
+ *  300 fails, and comments do not count.
  *  php tests/arch-check-cases.php */
 
 $tree = sys_get_temp_dir() . '/fides-arch-' . bin2hex(random_bytes(4));
@@ -17,6 +18,13 @@ $bodies = [
         . "        return static function (int \$n) use (\$step): int {\n"
         . "            return \$n + \$step;\n        };\n    }\n}",
 ];
+$constants = static fn(int $count): string => "final class %s\n{\n"
+    . implode('', array_map(static fn(int $i): string => "    public const C$i = $i;\n", range(1, $count)))
+    . '}';
+$bodies['ThingLong'] = sprintf($constants(250), 'ThingLong');
+$bodies['ThingTooLong'] = sprintf($constants(310), 'ThingTooLong');
+$bodies['ThingExplained'] = sprintf($constants(150), 'ThingExplained')
+    . str_repeat("\n// why\n", 200);
 foreach ($bodies as $name => $body) {
     file_put_contents(
         "$tree/Entities/Thing/$name.php",
@@ -39,6 +47,9 @@ $cases = [
     'any other parent fails' => str_contains($report, 'Thing.php: extends Model'),
     'a trait fails' => str_contains($report, 'ThingCounter.php: uses trait Counts'),
     'a closure use is not a trait' => substr_count($report, 'uses trait') === 1,
+    'past 200 code lines warns' => str_contains($report, 'ThingLong.php: 254 code lines (aim for 200)'),
+    'past 300 code lines fails' => str_contains($report, 'ThingTooLong.php: 314 code lines (max 300)'),
+    'comments do not count' => !str_contains($report, 'ThingExplained'),
     'the check exits 1' => $exit === 1,
 ];
 $failed = array_keys(array_filter($cases, static fn(bool $ok): bool => !$ok));

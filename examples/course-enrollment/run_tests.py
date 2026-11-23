@@ -12,8 +12,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 sys.path[:0] = [str(ROOT / "src"), str(ROOT / "tests"), str(ROOT)]
 
-from arch_check import check  # noqa: E402
+from arch_check import check, warnings  # noqa: E402
 
+for warning in warnings(ROOT / "src"):
+    print(f"arch_check warning: {warning}", file=sys.stderr)
 problems = check(ROOT / "src")
 if problems:
     print("arch_check FAILED:\n  " + "\n  ".join(problems), file=sys.stderr)
