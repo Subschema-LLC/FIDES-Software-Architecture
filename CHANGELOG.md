@@ -17,6 +17,17 @@
   `docs/decisions/`, named in code as `Decision: <name>`, never by number.
   A TODO names its issue. The one-page rules had "comments say what is true
   now" as rule 13 with no counterpart in `rules.md`; this is that rule, grown.
+- **Rule 16, small and shallow,** makes the file size limit two-tier: aim for
+  200 code lines, the check warns past 200 and fails past 300. It counts code
+  lines only, leaving out blank lines, comments and docstrings. The rule said
+  "about 200" while both checkers failed at exactly 200 and counted every line,
+  which pushed people and agents to cut comments to pass. Research on file size
+  and defects does not support one exact number, so the hard limit has room
+  and the warning starts the conversation. `structure.md` gives the test for
+  a file past 200: split out any concept you can name; keep it whole only when
+  one name covers it and a split would leave `part1`, `helpers` or files that
+  import each other, and say why in the change. The `AGENTS.md` template and
+  both examples tell agents the same, and the warning text repeats it.
 
 ### Docs
 
@@ -38,6 +49,8 @@
 - Its zone files pointed at `docs/02-zones.md`, which does not exist. The new
   check caught all five; they now say what their zone may import.
 - The PHP examples do not check comments yet.
+- Both example checkers warn past 200 code lines and fail past 300, with
+  tests for each tier. The PHP example's `AGENTS.md` now states the size rule.
 
 ## 0.3 (2026-11-17)
 

@@ -63,3 +63,11 @@ This app follows FIDES. Run `php arch-check.php` and
    the environment only.
 10. Escape every value you print. Every POST form carries the CSRF
     token and its handler checks it.
+11. **Keep files small.** Aim for under 200 code lines. The check
+    warns past 200 and fails past 300; comments and blank lines do
+    not count. Split by concept, never by kind of code. If a file you
+    touched warns: split out any concept you can name. Keep it whole
+    only if one name covers all of it and a split would leave `Part1`,
+    `Helpers` or classes that call each other back and forth, and say
+    why in your summary. 200 to 300 is room for one concept, not space
+    to fill.

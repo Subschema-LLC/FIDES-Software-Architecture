@@ -64,8 +64,13 @@ integration, stop and ask whether a concept is being spread too far.
     page folder; feature assets load when a feature view renders, so never list
     them by hand.
 12. **Keep it close and small.** At most `zone/owner/file` deep (pages:
-    `delivery/web/<page>/file`), lines up to 100 characters, files up to 200
-    lines. Split by concept, never by kind of code.
+    `delivery/web/<page>/file`), lines up to 100 characters. Aim for files
+    under 200 code lines (the check warns past 200 and fails past 300;
+    comments and blank lines do not count). Split by concept, never by kind
+    of code. If a file you touched warns: split out any concept you can name.
+    Keep it whole only if one name covers all of it and a split would leave
+    `part1`, `helpers` or files that import each other, and say why in your
+    summary. 200 to 300 is room for one concept, not space to fill.
 13. **Explanations sit with what they explain.** Every file opens with a
     docstring: what it does, then why. Comments say what is true now; what
     changed goes in the commit message. A decision no unit owns is a file in

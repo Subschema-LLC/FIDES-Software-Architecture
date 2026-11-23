@@ -89,7 +89,7 @@ Symfony with Doctrine and Twig ([todo-symfony](../examples/todo-symfony)).
   custom error. The example needs none: `ValueError` and `LookupError` with
   clear messages cover it.
 - **Enforcement:** import-linter, or a short `ast` script (the example's
-  `arch_check.py` is about 150 lines). Add mypy or pyright in strict mode.
+  `arch_check.py` is under 250 lines). Add mypy or pyright in strict mode.
 - **Views:** `string.Template` is logic-less and in the standard library.
 - **Web:** a plain WSGI function avoids subclassing a framework's handler.
 

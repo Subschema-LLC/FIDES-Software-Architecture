@@ -23,7 +23,7 @@ function check(bool $ok, string $name): void
 passthru('php ' . escapeshellarg($root . '/arch-check.php'), $archExit);
 check($archExit === 0, 'arch-check passes');
 passthru('php ' . escapeshellarg(__DIR__ . '/arch-check-cases.php'), $casesExit);
-check($casesExit === 0, 'arch-check allows only built-in exception parents');
+check($casesExit === 0, 'arch-check catches inheritance and file size');
 
 use App\Delivery\Web\WebApp;
 use App\Entities\TodoItem\TodoItem;

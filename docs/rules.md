@@ -153,15 +153,22 @@ in a group (`features/<group>/<use_case>/file`). A group is named for the area
 people look for, usually a screen or a menu entry. It is only a folder: it
 holds no code, the use case stays the owner, and features in one group still
 never call each other. Groups are optional; once a project uses them, every
-feature sits in one ([structure.md](structure.md#feature-groups)). Files stay
-under about 200 lines, lines under about 100 characters. Split by concept,
+feature sits in one ([structure.md](structure.md#feature-groups)). Aim for
+files under 200 code lines; past 200 the check warns, and past 300 it fails.
+Code lines leave out blank lines and comments, so nobody deletes an
+explanation to pass. Past 200, split out any concept you can name; keep the
+file whole only when it is one concept, and say why in the change
+([structure.md](structure.md#depth-size-and-naming)). Lines stay under about 100 characters. Split by concept,
 never by kind of code, and name the concept: files called `part1` and `part2`
 hide it.
 A file that is data, not logic (a lookup table, generated code), may skip the
 size limits when the checker lists it with its reason, in one place where
 review sees it. Logic never does. **(checkable)**
-*Why: code you can see whole is code you can understand whole, and a person or
-an AI agent finds a feature by the area it belongs to.*
+*Why: a small file holds one concept you can understand whole, and a person or
+an AI agent finds a feature by the area it belongs to. The 200 is a habit, not
+a measured optimum: studies of file size and defects disagree on any one
+number, so the hard limit sits higher and the warning starts the
+conversation.*
 
 ## Practice
 

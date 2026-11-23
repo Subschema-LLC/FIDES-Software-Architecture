@@ -21,14 +21,52 @@
  *    render another feature's view or a page template.
  *  - Each page folder in Delivery/Web/<Page>/ has <Page>.php and
  *    <Page>View.php, and all files in the folder are named for the page.
+ *  - A file past 200 code lines gets a warning; past 300 it fails. Blank
+ *    lines and comments do not count, so nobody cuts a comment to pass.
  *
  *  Pass a folder to check another tree: php arch-check.php <folder> */
 
 require __DIR__ . '/arch-check-inheritance.php';
 
+const TARGET_LINES = 200;
+const MAX_LINES = 300;
+
+/** Lines holding code: not blank and not only a comment. */
+function codeLineCount(string $code, string $ext): int
+{
+    if ($ext !== 'php') {
+        $code = (string) preg_replace_callback(
+            '#/\*.*?\*/#s',
+            static fn(array $m): string => str_repeat("\n", substr_count($m[0], "\n")),
+            $code
+        );
+        $lines = array_filter(
+            explode("\n", $code),
+            static fn(string $l): bool => trim($l) !== '' && !str_starts_with(trim($l), '//')
+        );
+        return count($lines);
+    }
+    $notCode = [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT, T_OPEN_TAG, T_CLOSE_TAG];
+    $line = 1;
+    $seen = [];
+    foreach (token_get_all($code) as $token) {
+        [$id, $text] = is_array($token) ? [$token[0], $token[1]] : [null, $token];
+        if (!in_array($id, $notCode, true)) {
+            foreach (explode("\n", $text) as $offset => $part) {
+                if (trim($part) !== '') {
+                    $seen[$line + $offset] = true;
+                }
+            }
+        }
+        $line += substr_count($text, "\n");
+    }
+    return count($seen);
+}
+
 $root = $argv[1] ?? __DIR__ . '/src';
 $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root));
 $violations = [];
+$warnings = [];
 
 foreach ($files as $file) {
     if (!$file->isFile()) {
@@ -56,9 +94,12 @@ foreach ($files as $file) {
     }
 
     $code = (string) file_get_contents($path);
-    $lineCount = substr_count($code, "\n") + 1;
-    if ($lineCount > 200) {
-        $violations[] = "$rel: $lineCount lines (max 200)";
+    $lineCount = codeLineCount($code, $ext);
+    if ($lineCount > MAX_LINES) {
+        $violations[] = "$rel: $lineCount code lines (max " . MAX_LINES . '); a concept is hiding in it';
+    } elseif ($lineCount > TARGET_LINES) {
+        $warnings[] = "$rel: $lineCount code lines (aim for " . TARGET_LINES . ')'
+            . '; split out any concept you can name, or keep it whole and say why';
     }
 
     if ($ext !== 'php') {
@@ -158,6 +199,9 @@ if (is_dir($webRoot)) {
     }
 }
 
+foreach ($warnings as $w) {
+    echo "arch-check warning: $w\n";
+}
 if ($violations !== []) {
     echo "arch-check FAILED:\n";
     foreach ($violations as $v) {

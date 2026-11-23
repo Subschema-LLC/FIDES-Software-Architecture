@@ -62,7 +62,7 @@ class ArchitectureTest(unittest.TestCase):
 
 
     def test_a_listed_data_file_may_pass_the_size_limits(self) -> None:
-        table = '"""Bot names."""\nPATTERNS = [\n' + "    'bot',\n" * 250 + "]\n"
+        table = '"""Bot names."""\nPATTERNS = [\n' + "    'bot',\n" * 320 + "]\n"
         exempt = {"integrations/bots/patterns.py": "a lookup table, not logic"}
         with tempfile.TemporaryDirectory() as folder:
             src = Path(folder)
@@ -72,7 +72,27 @@ class ArchitectureTest(unittest.TestCase):
             with mock.patch.dict(arch_check.SIZE_EXEMPT, exempt):
                 problems = "\n".join(check(src))
         self.assertNotIn("patterns.py", problems)
-        self.assertIn("rules.py: 253 lines", problems)
+        self.assertIn("rules.py: 322 code lines (max 300)", problems)
+
+    def test_size_counts_code_warns_past_200_and_fails_past_300(self) -> None:
+        def module(code: int, comments: int = 0) -> str:
+            header = '"""A header.\n\nThat runs\nover lines.\n"""\n'
+            return header + "# why\n\n" * comments + "x = 1\n" * code
+
+        files = {"long": module(250), "too_long": module(310),
+                 "explained": module(150, comments=200)}
+        with tempfile.TemporaryDirectory() as folder:
+            src = Path(folder)
+            (src / "shared").mkdir()
+            for name, text in files.items():
+                (src / f"shared/{name}.py").write_text(text, encoding="utf-8")
+            problems = "\n".join(check(src))
+            warned = "\n".join(arch_check.warnings(src))
+        self.assertIn("too_long.py: 310 code lines (max 300)", problems)
+        self.assertNotIn("shared/long.py", problems)
+        self.assertIn("shared/long.py: 250 code lines (aim for 200)", warned)
+        self.assertNotIn("too_long", warned)
+        self.assertNotIn("explained", problems + warned)
 
     def test_headers_decisions_and_todos(self) -> None:
         files = {
