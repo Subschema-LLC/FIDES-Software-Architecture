@@ -42,8 +42,12 @@ never checked, and by the time anyone measured, about 2,000 lines ran past
 
 ## AGENTS.md template
 
-Adapt the names to your language and app. The example app's
-[AGENTS.md](../examples/course-enrollment/AGENTS.md) is a filled-in version.
+Adapt the names to your language and app. The rules themselves live in
+[agents/fides-rules.md](../agents/fides-rules.md), inside a managed block that
+a scheduled workflow keeps in step with FIDES releases through a pull request,
+so no repository copies them by hand ([agents/README.md](../agents/README.md)).
+The example app's [AGENTS.md](../examples/course-enrollment/AGENTS.md) is a
+filled-in version written out in full.
 
 ```markdown
 # AGENTS.md
@@ -63,60 +67,11 @@ This app follows FIDES. Run `<check command>` before you finish.
 - An override for a setting             -> config/<Owner> (never in src/)
 
 ## Rules
-1. Only the owner changes its data. Others call its actions.
-2. Entities import only their own folder. Refer to other entities by id.
-3. One use case per feature folder. Features never import each other.
-4. The core never touches the database, files, network, environment or clock.
-5. Dependencies point inward. Only wiring imports integrations.
-6. No inheritance. Compose. Contracts are interfaces. A custom error may
-   extend one built-in exception, nothing else.
-7. Messages: entities record, stores save with the change, a worker dispatches.
-8. One write by default. UnitOfWork only when two entities change.
-9. Settings: declared in code, overridden in config/, then env. Secrets: env only.
-10. Views only display. Escaped by default. Features shape their values.
-11. Pages compose features: a folder per page in delivery/web/<page>/. A form
-    belongs to the feature that handles it. A feature view never renders
-    another's. CSS and JS are feature-specific in features/, global in layout,
-    and page-specific in the page folder (never inline).
-12. At most zone/owner/file deep (pages: delivery/web/<page>/file; grouped
-    features: features/<group>/<use_case>/file, all or none, no code in a group).
-    Files: aim for 200 code lines, never past 300. Past 200, split out any
-    concept you can name; keep it whole only if it is one concept, and say
-    why in your summary. Lines up to 100 characters. Keep one casing (snake_case or PascalCase)
-    consistent across folders, code, views, .css, .js and config/.
-13. Every file opens with what it does and why. Comments say why, and what
-    is true now; history goes in the commit message. A decision no unit owns
-    goes in docs/decisions/<name>.md and is named in code as
-    `Decision: <name>`. A TODO names its issue: TODO(#123).
+<!-- FIDES:BEGIN -->
+<!-- FIDES:END -->
 
-## Naming
-A name is a promise. If the code drifts from the name, that is a defect.
-- Guess before you look: a reader who knows the domain should be able to
-  guess a feature's path, and a file's contents from its name alone. If
-  they cannot, rename it.
-- Say it out loud: full words, no abbreviations, nothing clever. A name
-  should survive being spoken in a sentence. Length is fine; ambiguity
-  is not.
-- One word per concept: the domain's nouns and verbs, spelled the same in
-  folders, classes, files, methods, routes and tests. If the business
-  says "cancel", the code never also says "void" or "revoke" for the
-  same act.
-- Grammar carries meaning: features and use cases are verb phrases
-  (IssueInvoice). Entities are plain nouns (Invoice). Methods read as
-  sentences at the call site ($invoice->markPaid()). A method that
-  answers yes or no is a question (hasBalanceDue(), isOverdue()).
-- Empty words are banned: Manager, Helper, Utils, Handler, Processor,
-  Data, Info, Misc. They say nothing; banning them puts the meaning in
-  the name. A check can flag these.
-- "And" means two jobs: split the unit. If a name needs a comment to say
-  what the thing is, the name failed; fix the name, not the comment.
-- Tests are named as the rule they check (invoice_total_includes_tax,
-  subscription_cannot_cancel_twice). The suite reads as the spec.
-- When a convention from the wider ecosystem fights readability,
-  readability wins.
-
-If a change touches more than its feature folder, the entities it names,
-one integration and wiring, stop and ask whether something is spread too far.
+## This app
+- Check command, framework mapping, and any rule stricter than FIDES.
 ```
 
 ## Reading order for a returning human or a new agent

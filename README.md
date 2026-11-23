@@ -119,7 +119,8 @@ More in [docs/why.md](docs/why.md).
 3. [Rules](docs/rules.md): every rule, with its reason
 4. [Changes and messages](docs/changes.md): transactions, the outbox, concurrency
 5. [Configuration](docs/configuration.md): defaults, overrides, environment
-6. [Working with AI](docs/ai.md): AGENTS.md, the build check, reading order
+6. [Working with AI](docs/ai.md): AGENTS.md, the build check, reading order;
+   [keeping AGENTS.md in sync](agents/README.md) across repositories
 7. [Comments and decisions](docs/comments.md): the file header, what a comment
    says, and decision records
 8. [Language notes](docs/languages.md): FIDES in PHP, Python, TypeScript, Java,
