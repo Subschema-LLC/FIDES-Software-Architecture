@@ -23,7 +23,11 @@
   "about 200" while both checkers failed at exactly 200 and counted every line,
   which pushed people and agents to cut comments to pass. Research on file size
   and defects does not support one exact number, so the hard limit has room
-  and the warning starts the conversation.
+  and the warning starts the conversation. `structure.md` gives the test for
+  a file past 200: split out any concept you can name; keep it whole only when
+  one name covers it and a split would leave `part1`, `helpers` or files that
+  import each other, and say why in the change. The `AGENTS.md` template and
+  both examples tell agents the same, and the warning text repeats it.
 
 ### Docs
 

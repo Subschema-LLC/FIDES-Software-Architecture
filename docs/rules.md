@@ -156,7 +156,9 @@ never call each other. Groups are optional; once a project uses them, every
 feature sits in one ([structure.md](structure.md#feature-groups)). Aim for
 files under 200 code lines; past 200 the check warns, and past 300 it fails.
 Code lines leave out blank lines and comments, so nobody deletes an
-explanation to pass. Lines stay under about 100 characters. Split by concept,
+explanation to pass. Past 200, split out any concept you can name; keep the
+file whole only when it is one concept, and say why in the change
+([structure.md](structure.md#depth-size-and-naming)). Lines stay under about 100 characters. Split by concept,
 never by kind of code, and name the concept: files called `part1` and `part2`
 hide it.
 A file that is data, not logic (a lookup table, generated code), may skip the

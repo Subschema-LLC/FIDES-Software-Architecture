@@ -81,8 +81,8 @@ def warnings(src: Path) -> list[str]:
         rel = path.relative_to(src).as_posix()
         count = code_lines(path)
         if rel not in SIZE_EXEMPT and TARGET_LINES < count <= MAX_LINES:
-            found.append(f"{rel}: {count} code lines (aim for {TARGET_LINES}); "
-                         "is a concept hiding in it?")
+            found.append(f"{rel}: {count} code lines (aim for {TARGET_LINES}); split out "
+                         "any concept you can name, or keep it whole and say why")
     return found
 
 

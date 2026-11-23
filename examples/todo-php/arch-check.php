@@ -98,7 +98,8 @@ foreach ($files as $file) {
     if ($lineCount > MAX_LINES) {
         $violations[] = "$rel: $lineCount code lines (max " . MAX_LINES . '); a concept is hiding in it';
     } elseif ($lineCount > TARGET_LINES) {
-        $warnings[] = "$rel: $lineCount code lines (aim for " . TARGET_LINES . '); is a concept hiding in it?';
+        $warnings[] = "$rel: $lineCount code lines (aim for " . TARGET_LINES . ')'
+            . '; split out any concept you can name, or keep it whole and say why';
     }
 
     if ($ext !== 'php') {

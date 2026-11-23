@@ -311,9 +311,15 @@ Spread has a vertical side too:
   page in delivery (`delivery/web/<page>/file`) and a feature in a group
   (`features/<group>/<use_case>/file`, see [feature groups](#feature-groups)).
 - **Small files.** Aim for under 200 code lines (blank lines and comments do
-  not count). Past 200 the check warns: look for another concept hiding in the
-  file and give it its own unit, named for it. Past 300 the check fails. A file
-  between the two that is still one concept may stay. A data file (a lookup table,
+  not count). Past 200 the check warns and you decide; past 300 it fails.
+  - **Split** when you can name a second concept in the file, when a part
+    could be read and tested on its own, or when parts change for different
+    reasons. Give the new concept its own unit, named for it.
+  - **Keep together** when one name honestly covers the whole file, its parts
+    change together, and a split would only give you `part1`, `helpers`, or
+    two files that import each other.
+  - 200 to 300 is room for a file that is truly one concept, not space to
+    fill. A file kept past 200 gets its reason in the change description. A data file (a lookup table,
   generated code) may be listed in the checker as an exemption, with its
   reason, never logic and never with a comment in the file itself.
 - **Short lines.** About 100 characters, one statement per line, so code
