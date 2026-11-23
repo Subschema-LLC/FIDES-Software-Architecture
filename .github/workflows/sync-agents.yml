@@ -1,0 +1,92 @@
+# Reusable workflow: keeps the managed FIDES block in a repository's agent
+# guide in step with a FIDES release, by opening a pull request when it
+# changes. A repository calls it on a schedule; see agents/README.md.
+name: Sync FIDES rules
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: FIDES release tag to sync to, or "latest"
+        type: string
+        default: latest
+      target:
+        description: The guide that holds the FIDES:BEGIN/FIDES:END markers
+        type: string
+        default: AGENTS.md
+      base:
+        description: Branch to update and open the pull request against (default branch if empty)
+        type: string
+        default: ''
+
+permissions: {}
+
+jobs:
+  sync:
+    name: Sync FIDES rules
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      UPSTREAM: Subschema-LLC/FIDES-Software-Architecture
+      WANTED: ${{ inputs.version }}
+      TARGET: ${{ inputs.target }}
+      BASE: ${{ inputs.base }}
+    steps:
+      - name: Pick the release and the base branch
+        id: pick
+        run: |
+          if [ "$WANTED" = latest ]; then
+            tag=$(gh api "repos/$UPSTREAM/releases/latest" --jq .tag_name)
+          else
+            tag="$WANTED"
+          fi
+          base="${BASE:-$(gh api "repos/$GITHUB_REPOSITORY" --jq .default_branch)}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.pick.outputs.base }}
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: Subschema-LLC/FIDES-Software-Architecture
+          ref: ${{ steps.pick.outputs.tag }}
+          path: .fides-upstream
+          persist-credentials: false
+
+      - name: Update the managed block
+        env:
+          TAG: ${{ steps.pick.outputs.tag }}
+        run: |
+          python3 .fides-upstream/agents/sync_agents.py \
+            .fides-upstream/agents/fides-rules.md "$TARGET" "$TAG"
+          rm -rf .fides-upstream
+
+      - name: Open or update the pull request
+        env:
+          TAG: ${{ steps.pick.outputs.tag }}
+          BASE_BRANCH: ${{ steps.pick.outputs.base }}
+        run: |
+          if git diff --quiet; then
+            echo "$TARGET already matches FIDES $TAG"
+            exit 0
+          fi
+          branch="fides-sync/$TAG"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git commit -am "Sync FIDES rules to $TAG"
+          git push --force origin "$branch"
+          open=$(gh pr list --head "$branch" --state open --json number --jq 'length')
+          if [ "$open" = 0 ]; then
+            gh pr create --base "$BASE_BRANCH" --head "$branch" \
+              --title "Sync FIDES rules to $TAG" \
+              --body "Updates the managed FIDES block in \`$TARGET\` to [$TAG](https://github.com/$UPSTREAM/releases/tag/$TAG).
+
+          Read the release notes before merging: a rule change can need the same change in this repository's checker or its own rules outside the block. Only the managed block is changed."
+          fi

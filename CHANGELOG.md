@@ -29,6 +29,20 @@
   import each other, and say why in the change. The `AGENTS.md` template and
   both examples tell agents the same, and the warning text repeats it.
 
+### Agents
+
+- **Managed rules block** (new). `agents/fides-rules.md` holds the one-page
+  rules every FIDES repository shares. A repository marks where they go in
+  its `AGENTS.md` with `FIDES:BEGIN`/`FIDES:END`, and the reusable workflow
+  `.github/workflows/sync-agents.yml` opens a pull request there when a FIDES
+  release changes them. Everything outside the markers stays the
+  repository's own. Copying the rules by hand let every repository drift;
+  linking to them live would let a rule change reach a repository before its
+  checker, and let agents take instructions from the network.
+  [agents/README.md](agents/README.md) says how to adopt it.
+- The `AGENTS.md` template in `ai.md` now holds the markers instead of a copy
+  of the rules.
+
 ### Docs
 
 - `structure.md`: a section on feature groups, the depth exception, and a
