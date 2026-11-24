@@ -6,7 +6,7 @@ FIDES is a way to structure software so it stays simple, readable and
 encapsulated, for the people who write it and for the AI agents that help
 them. It works in any programming language.
 
-> **Status:** draft 0.3. The rules are being tested against real apps and
+> **Status:** draft 0.4. The rules are being tested against real apps and
 > will change. See [CHANGELOG.md](CHANGELOG.md) for what changed and why.
 
 ## The problem
