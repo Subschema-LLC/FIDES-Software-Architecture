@@ -45,6 +45,11 @@
 
 ### Docs
 
+- `structure.md`: an optional `_layout/` folder that groups the frame (the
+  layout, its global CSS and JS, the renderer, and helpers several pages use)
+  when the root of `delivery/web/` gets crowded. It is an idea, not a rule:
+  the examples keep the default, and their checkers would need to skip the
+  folder.
 - `structure.md`: a section on feature groups, the depth exception, and a
   glossary entry. `ai.md`: the one-page rules mention groups.
 - The example checkers still require `features/<use_case>/file`. The examples
