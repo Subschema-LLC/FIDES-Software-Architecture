@@ -215,6 +215,40 @@ The cost is honest: a screen is now two places, its page folder and the
 features it shows. In exchange, each part of the screen is found by asking
 who handles it, and nothing on the page is owned twice.
 
+##### Optional: group the frame in `_layout/`
+
+The tree above keeps the layout, its global CSS and JS, and the renderer
+loose at the root of `delivery/web/`. That is the default, not a rule. When
+those files start to crowd the page folders, or the frame picks up helpers
+that several pages use, you can move them into one folder that stands apart
+from the pages:
+
+```
+delivery/web/
+  routes              # stays at the root: paths to pages
+  _layout/
+    layout            # the outer frame every page sits in
+    layout.css        # global styles for the frame
+    layout.js         # global scripts for the frame
+    renderer          # escapes by default, loads layout, feature and page assets
+    flash             # the flash message the frame prints on every page
+  board/
+    ...
+```
+
+The underscore marks the folder as not a page and, in most editors, sorts it
+above the page folders. Use the project's casing (`_layout/` or `_Layout/`).
+The folder keeps the layout's job and nothing more:
+
+- **Presentation only.** Delivery holds no business rules, and neither does
+  `_layout/`.
+- **More than one page uses it.** A helper or style for one page stays in
+  that page's folder, and a rule for one feature's markup stays in that
+  feature.
+- **Tell the checker.** A checker that treats every folder in
+  `delivery/web/` as a page must skip `_layout/`, and the renderer must load
+  the frame from its new path.
+
 ### Outside `src/`
 
 | Path | Holds |
